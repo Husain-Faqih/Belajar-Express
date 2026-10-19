@@ -2,7 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
-const daftarSoal = [
+app.use(express.json());
+
+let daftarSoal = [
   {
     id: 1,
     pertanyaan: "Apa kepanjangan dari HTML?",
@@ -36,6 +38,58 @@ app.get("/soal/:id", (req, res) => {
     res.json(soal);
   } else {
     res.status(404).json({ pesan: "Soal tidak di temukan!" });
+  }
+});
+
+app.post("/soal", (req, res) => {
+  const { pertanyaan, jawaban } = req.body;
+
+  if (!pertanyaan || jawaban) {
+    return res
+      .status(400)
+      .json({ pesan: "Pertanyaan dan jawaban wajib diisi!" });
+  }
+
+  const idBaru =
+    daftarSoal.length > 0 ? daftarSoal[daftarSoal.length - 1].id + 1 : 1;
+
+  const soalBaru = {
+    id: idBaru,
+    pertanyaan: pertanyaan,
+    jawaban: jawaban,
+  };
+
+  daftarSoal.push(soalBaru);
+  res.status(201).json(soalBaru);
+});
+
+app.put("/soal/:id", (req, res) => {
+  const idSoal = parseInt(req.params.id);
+  const { pertanyaan, jawaban } = req.body;
+  const index = daftarSoal.findIndex((s) => s.id === idSoal);
+
+  if (index !== -1) {
+    daftarSoal[index] = {
+      id: idSoal,
+      pertanyaan: pertanyaan || daftarSoal[index].pertanyaan,
+      jawaban: jawaban || daftarSoal[index].jawaban,
+    };
+
+    res.json(daftarSoal[index]);
+  } else {
+    res.status(404).json({ pesan: "Soal tidak di temukan!" });
+  }
+});
+
+app.delete("/soal/:id", (req, res) => {
+  const idSoal = parseInt(req.params.id);
+  const index = daftarSoal.findIndex((s) => s.id === idSoal);
+
+  if (index !== -1) {
+    const soalDihapus = daftarSoal.splice(index, 1);
+    res.json({ pesan: "Soal berhasil dihapus!", data: soalDihapus[0] });
+  } else {
+    res.status(404).json({ pesan: "Soal tidak ditemukan!" });
   }
 });
 
