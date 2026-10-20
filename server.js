@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
-
 app.use(express.json());
 
 let daftarSoal = [
@@ -44,7 +43,7 @@ app.get("/soal/:id", (req, res) => {
 app.post("/soal", (req, res) => {
   const { pertanyaan, jawaban } = req.body;
 
-  if (!pertanyaan || jawaban) {
+  if (!pertanyaan || !jawaban) {
     return res
       .status(400)
       .json({ pesan: "Pertanyaan dan jawaban wajib diisi!" });
@@ -91,6 +90,22 @@ app.delete("/soal/:id", (req, res) => {
   } else {
     res.status(404).json({ pesan: "Soal tidak ditemukan!" });
   }
+});
+
+app.post("/soal/cari", (req, res) => {
+  const { cari } = req.body;
+
+  if (!cari) {
+    return res
+      .status(400)
+      .json({ pesan: "Kata kunci 'cari' wajib diisi di body!" });
+  }
+
+  const hasilFilter = daftarSoal.filter((s) =>
+    s.pertanyaan.toLowerCase().includes(cari.toLowerCase()),
+  );
+
+  res.json(hasilFilter);
 });
 
 app.listen(PORT, () => {
