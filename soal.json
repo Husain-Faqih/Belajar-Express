@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "pertanyaan": "Apa kepanjangan dari HTML yang benar?",
+    "jawaban": "HyperText Markup Language"
+  },
+  {
+    "id": 2,
+    "pertanyaan": "Port berapa yang sedang di pakai server ini?",
+    "jawaban": "3000"
+  },
+  {
+    "id": 3,
+    "pertanyaan": "Apa nama library untuk mengelola waktu di Node.js?",
+    "jawaban": "Moment.js atau Day.js"
+  },
+  {
+    "id": 4,
+    "pertanyaan": "Apa nama framework backend JS yang kita pakai?",
+    "jawaban": "Express.js"
+  }
+]
