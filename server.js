@@ -54,6 +54,13 @@ app.get("/soal", (req, res) => {
   res.json(daftarSoal);
 });
 
+app.get("/soal/cari", (req, res) => {
+  const { keyword } = req.query;
+  const query = db.prepare("SELECT * FROM soal WHERE pertanyaan LIKE ?");
+  const hasil = query.all(`%${keyword}%`);
+  res.json(hasil);
+});
+
 app.get("/soal/:id", (req, res) => {
   const idSoal = parseInt(req.params.id);
   const soal = db.prepare("SELECT * FROM soal WHERE id = ?").get(idSoal);
@@ -64,19 +71,6 @@ app.get("/soal/:id", (req, res) => {
     res.status(404).json({ pesan: "Soal tidak ditemukan!" });
   }
 });
-
-const bacaDataSoal = () => {
-  try {
-    const dataBuffer = fs.readFileSync("soal.json", "utf8");
-    return JSON.parse(dataBuffer);
-  } catch (error) {
-    return [];
-  }
-};
-
-const simpanDataSoal = (data) => {
-  fs.writeFileSync("soal.json", JSON.stringify(data, null, 2), "utf8");
-};
 
 app.post("/soal", (req, res) => {
   const { pertanyaan, jawaban } = req.body;
@@ -90,6 +84,44 @@ app.post("/soal", (req, res) => {
     .prepare("INSERT INTO soal (pertanyaan, jawaban) VALUES (?, ?)")
     .run(pertanyaan, jawaban);
   res.status(201).json({ id: info.lastInsertRowid, pertanyaan, jawaban });
+});
+
+app.put("/soal/:id", (req, res) => {
+  const idSoal = parseInt(req.params.id);
+  const { pertanyaan, jawaban } = req.body;
+
+  if (!pertanyaan || !jawaban) {
+    return res
+      .status(400)
+      .json({ pesan: "Pertanyaan dan jawaban wajib diisi!" });
+  }
+
+  const query = db.prepare(
+    "UPDATE soal SET pertanyaan = ?, jawaban = ? WHERE id = ?",
+  );
+  const result = query.run(pertanyaan, jawaban, idSoal);
+
+  if (result.changes === 0) {
+    return res
+      .status(404)
+      .json({ pesan: "Soal yang mau di-update tidak ditemukan!" });
+  }
+
+  res.json({ pesan: `Soal dengan ID ${idSoal} berhasil di-update!` });
+});
+
+app.delete("/soal/:id", (req, res) => {
+  const idSoal = parseInt(req.params.id);
+  const query = db.prepare("DELETE FROM soal WHERE id = ?");
+  const result = query.run(idSoal);
+
+  if (result.changes === 0) {
+    return res
+      .status(404)
+      .json({ pesan: "Soal tidak ditemukan untuk dihapus!" });
+  }
+
+  res.json({ pesan: `Soal dengan ID ${idSoal} berhasil dihapus!` });
 });
 
 app.listen(PORT, () => {
