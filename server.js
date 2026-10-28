@@ -38,7 +38,7 @@ if (cekData.total === 0) {
     console.log("Berhasil migrasi data dari soal.json ke SQLite!");
   } catch (error) {
     console.log(
-      "File soal.json tidak ditemukan atau kosong, migrasi dilewati.",
+      "File soal.json tidak ditemukan, migrasi dilewati.",
     );
   }
 } else {
