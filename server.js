@@ -93,6 +93,20 @@ app.get("/soal", (req, res) => {
   res.json(daftarSoal);
 });
 
+try {
+  const infoKolom = db.prepare("PRAGMA table_info(soal)").all();
+  const adaKAtegoriId = infoKolom.some((kolom) => kolom.name === "kategori_id");
+  if (!adaKAtegoriId) {
+    db.prepare("ALTER TABLE soal ADD COLUMN kategori_id INTEGER").run();
+    db.prepare(
+      "UPDATE soal SET kategori_id = 1 WHERE kategori_id IS NULL",
+    ).run();
+    console.log("Kolom kategori_id berhasil ditambahkan ke tabel soal!");
+  }
+} catch (error) {
+  console.log("Catatan migrasi:", error.message);
+}
+
 app.get("/soal/cari", (req, res) => {
   const { keyword } = req.query;
   const query = db.prepare("SELECT * FROM soal WHERE pertanyaan LIKE ?");
@@ -134,15 +148,13 @@ app.post("/soal", (req, res) => {
       "INSERT INTO soal (pertanyaan, jawaban, kategori_id) VALUES (?, ?, ?)",
     )
     .run(pertanyaan, jawaban, kategori_id);
-  res
-    .status(201)
-    .json({
-      id: info.lastInsertRowid,
-      pertanyaan,
-      jawaban,
-      kategori_id,
-      nama_kategori: cekKategori.nama,
-    });
+  res.status(201).json({
+    id: info.lastInsertRowid,
+    pertanyaan,
+    jawaban,
+    kategori_id,
+    nama_kategori: cekKategori.nama,
+  });
 });
 
 app.put("/soal/:id", (req, res) => {
@@ -153,6 +165,15 @@ app.put("/soal/:id", (req, res) => {
     return res
       .status(400)
       .json({ pesan: "Pertanyaan, jawaban, dan kategori wajib diisi!" });
+  }
+
+  const cekKategoriValid = db
+    .prepare("SELECT * FROM kategori WHERE id = ?")
+    .get(kategori_id);
+  if (!cekKategoriValid) {
+    return res.status(400).json({
+      pesan: `kategori dengan ID ${kategori_id} tidak valid, kategori tidak ditemukan!.`,
+    });
   }
 
   const query = db.prepare(
