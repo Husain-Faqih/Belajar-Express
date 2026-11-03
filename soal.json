@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "pertanyaan": "Apa kepanjangan dari HTML yang benar?",
+    "pertanyaan": "Apa kepanjangan dari HTML?",
     "jawaban": "HyperText Markup Language"
   },
   {
@@ -18,5 +18,10 @@
     "id": 4,
     "pertanyaan": "Apa nama framework backend JS yang kita pakai?",
     "jawaban": "Express.js"
+  },
+  {
+    "id": 5,
+    "pertanyaan": "Apa nama framework frontend JS yang kita pakai?",
+    "jawaban": "React.js"
   }
 ]
