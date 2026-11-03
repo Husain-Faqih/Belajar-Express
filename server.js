@@ -5,6 +5,8 @@ const PORT = 3000;
 const Database = require("better-sqlite3");
 const db = new Database("soal.db");
 
+console.log("Tipe dari app.query adalah:", typeof app.query);
+
 app.use(express.json());
 
 db.prepare(
