@@ -53,7 +53,8 @@ if (cekData.total === 0) {
 
     const simpanBanyakData = db.transaction((soals) => {
       for (let soal of soals) {
-        insertData.run(soal.pertanyaan, soal.jawaban, soal.kategori_id);
+        const kategoriId = soal.kategori_id || 1;
+        insertData.run(soal.pertanyaan, soal.jawaban, kategoriId);
       }
     });
 
