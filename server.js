@@ -7,18 +7,6 @@ const db = new Database("soal.db");
 
 console.log("Tipe dari app.query adalah:", typeof app.query);
 
-// Uji coba nilai 1 (angka)
-const hasil1 = db.prepare("SELECT id FROM soal ORDER BY ?").all(1);
-console.log("Hasil nilai 1:", hasil1);
-
-// Uji coba string "pertanyaan" (nama kolom)
-const hasil2 = db.prepare("SELECT id FROM soal ORDER BY ?").all("pertanyaan");
-console.log("Hasil nilai 'pertanyaan':", hasil2);
-
-// Uji coba string "id DESC" (kolom dan arah urutan)
-const hasil3 = db.prepare("SELECT id FROM soal ORDER BY ?").all("id DESC");
-console.log("Hasil nilai 'id DESC':", hasil3);
-
 app.use(express.json());
 
 db.prepare(
