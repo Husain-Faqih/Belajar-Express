@@ -7,6 +7,18 @@ const db = new Database("soal.db");
 
 console.log("Tipe dari app.query adalah:", typeof app.query);
 
+// Uji coba nilai 1 (angka)
+const hasil1 = db.prepare("SELECT id FROM soal ORDER BY ?").all(1);
+console.log("Hasil nilai 1:", hasil1);
+
+// Uji coba string "pertanyaan" (nama kolom)
+const hasil2 = db.prepare("SELECT id FROM soal ORDER BY ?").all("pertanyaan");
+console.log("Hasil nilai 'pertanyaan':", hasil2);
+
+// Uji coba string "id DESC" (kolom dan arah urutan)
+const hasil3 = db.prepare("SELECT id FROM soal ORDER BY ?").all("id DESC");
+console.log("Hasil nilai 'id DESC':", hasil3);
+
 app.use(express.json());
 
 db.prepare(
@@ -99,12 +111,38 @@ app.get("/soal", (req, res) => {
 try {
   const infoKolom = db.prepare("PRAGMA table_info(soal)").all();
   const adaKAtegoriId = infoKolom.some((kolom) => kolom.name === "kategori_id");
+
+  //cek kategori_id di foreign key list
+  const fkList = db.prepare("PRAGMA foreign_key_list(soal)").all();
   if (!adaKAtegoriId) {
-    db.prepare("ALTER TABLE soal ADD COLUMN kategori_id INTEGER").run();
-    db.prepare(
-      "UPDATE soal SET kategori_id = 1 WHERE kategori_id IS NULL",
-    ).run();
-    console.log("Kolom kategori_id berhasil ditambahkan ke tabel soal!");
+    console.log("Menjalankan migrasi: Melakukan table rebuilding untuk menambahkan Forgein key...")
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS soal_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pertanyaan TEXT,
+        jawaban TEXT,
+        kategori_id INTEGER DEFAULT 1,
+        FOREIGN KEY (kategori_id) REFERENCES kategori(id)
+      )
+    `).run();
+
+    if (adaKategoriId) {
+      db.prepare(`
+        INSERT INTO soal_new (id, pertanyaan, jawaban, kaetegori_id)
+        SELECT id, pertanyaan, jawaban, FROM soal`
+      ).run();
+    } else {
+      db.prepare(`
+        INSERT INTO soal_new (id, pertanyaan, jawaban)
+        SELECT id, pertanyaan, jawaban FROM soal`
+      ).run(); 
+    }
+
+    db.prepare("DROP TABLE soal").run();
+    db.prepare("ALTER TABLE soal_new RENAME TO soal").run();
+    console.log("Migrasi table rebuilding berhasil!");
+  } else {
+    console.log("Tidak perlu migrasi, kolom kategori_id sudah ada.");
   }
 } catch (error) {
   console.log("Catatan migrasi:", error.message);
