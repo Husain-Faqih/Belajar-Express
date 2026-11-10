@@ -100,7 +100,6 @@ try {
   const infoKolom = db.prepare("PRAGMA table_info(soal)").all();
   const adaKategoriId = infoKolom.some((kolom) => kolom.name === "kategori_id");
 
-  //cek kategori_id di foreign key list
   const fkList = db.prepare("PRAGMA foreign_key_list(soal)").all();
   if (!adaKategoriId) {
     console.log("Menjalankan migrasi: Melakukan table rebuilding untuk menambahkan Forgein key...")
