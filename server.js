@@ -101,7 +101,8 @@ try {
   const adaKategoriId = infoKolom.some((kolom) => kolom.name === "kategori_id");
 
   const fkList = db.prepare("PRAGMA foreign_key_list(soal)").all();
-  if (!adaKategoriId) {
+  const adaForeignKey = fkList.length > 0;
+  if (!adaKategoriId || !adaForeignKey) {
     console.log("Menjalankan migrasi: Melakukan table rebuilding untuk menambahkan Forgein key...")
     db.prepare(`
       CREATE TABLE IF NOT EXISTS soal_new (
@@ -115,8 +116,8 @@ try {
 
     if (adaKategoriId) {
       db.prepare(`
-        INSERT INTO soal_new (id, pertanyaan, jawaban, kaetegori_id)
-        SELECT id, pertanyaan, jawaban, FROM soal`
+        INSERT INTO soal_new (id, pertanyaan, jawaban, kategori_id)
+        SELECT id, pertanyaan, jawaban, kategori_id FROM soal`
       ).run();
     } else {
       db.prepare(`
