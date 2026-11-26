@@ -1,10 +1,8 @@
 const Database = require("better-sqlite3");
 const fs = require("fs");
 
-// Ambil argumen nama database dari terminal (default: soal-awal.db)
 const dbFile = process.argv[2] || "soal-awal.db";
 
-// 1. Validasi: Pastikan file database ada dan ukurannya lebih dari 0 byte
 if (!fs.existsSync(dbFile) || fs.statSync(dbFile).size === 0) {
   console.error(
     `Error: File database '${dbFile}' tidak ditemukan atau merupakan file kosong 0 byte.`,
@@ -15,22 +13,14 @@ if (!fs.existsSync(dbFile) || fs.statSync(dbFile).size === 0) {
 const db = new Database(dbFile);
 
 db.exec("PRAGMA foreign_keys = ON;");
-
-// 2. Validasi Khusus: Jika database yang dibuka BUKAN database soal (misal: database pelanggan),
-// pastikan kita mengecek apakah tabel 'soal' sudah ada atau apakah ini database yang valid.
-// Catatan: Jika ini adalah inisialisasi awal database baru, tabel 'soal' akan dibuat.
-// Tapi jika mengecek database asing (seperti pelanggan.db), kita bisa periksa eksistensinya.
 const cekTabelSoal = db
   .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='soal';")
   .get();
 
-// Jika file database sudah ada isinya tapi TIDAK punya tabel 'soal' (misal: pelanggan.db),
-// kita tolak agar tidak salah memproses atau merusak database lain.
 const cekFileEksis = db
   .prepare("SELECT COUNT(*) as cnt FROM sqlite_master")
   .get();
 if (cekFileEksis.cnt > 0 && !cekTabelSoal) {
-  // Cek apakah ada tabel lain seperti 'pelanggan' yang menandakan ini database salah
   const cekPelanggan = db
     .prepare(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='pelanggan';",
@@ -110,6 +100,18 @@ if (cekData.total > 0) {
     jalankanMigrasi(soalLama);
     console.log("Log: Migrasi data selesai dengan sukses.");
   }
+}
+
+const tableCheck = db
+  .prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='pelanggan'",
+  )
+  .get();
+if (tableCheck) {
+  console.error(
+    "Error: Ditemukan database asing (tabel 'pelanggan'). Migrasi dibatalkan untuk mencegah kerusakan.",
+  );
+  process.exit(1);
 }
 
 db.close();
