@@ -1,7 +1,41 @@
 const Database = require("better-sqlite3");
-const db = new Database("soal-awal.db");
+const fs = require("fs");
+
+const dbFile = process.argv[2] || "soal-awal.db";
+
+if (!fs.existsSync(dbFile) || fs.statSync(dbFile).size === 0) {
+  console.error(
+    `Error: File database '${dbFile}' tidak ditemukan atau merupakan file kosong 0 byte.`,
+  );
+  process.exit(1);
+}
+
+const db = new Database(dbFile);
 
 db.exec("PRAGMA foreign_keys = ON;");
+const cekTabelSoal = db
+  .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='soal';")
+  .get();
+
+const cekFileEksis = db
+  .prepare("SELECT COUNT(*) as cnt FROM sqlite_master")
+  .get();
+if (cekFileEksis.cnt > 0 && !cekTabelSoal) {
+  const cekPelanggan = db
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='pelanggan';",
+    )
+    .get();
+
+  if (cekPelanggan) {
+    console.error(
+      `Error: Ditemukan database asing (tabel 'pelanggan'). Migrasi dibatalkan untuk mencegah kerusakan.`,
+    );
+    db.close();
+    process.exit(1);
+  }
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS soal (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +100,18 @@ if (cekData.total > 0) {
     jalankanMigrasi(soalLama);
     console.log("Log: Migrasi data selesai dengan sukses.");
   }
+}
+
+const tableCheck = db
+  .prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='pelanggan'",
+  )
+  .get();
+if (tableCheck) {
+  console.error(
+    "Error: Ditemukan database asing (tabel 'pelanggan'). Migrasi dibatalkan untuk mencegah kerusakan.",
+  );
+  process.exit(1);
 }
 
 db.close();
